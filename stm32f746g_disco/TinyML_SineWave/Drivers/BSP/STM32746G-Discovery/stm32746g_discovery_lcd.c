@@ -183,10 +183,10 @@ uint8_t BSP_LCD_Init(void)
   hLtdcHandler.LayerCfg->ImageWidth  = RK043FN48H_WIDTH;
   hLtdcHandler.LayerCfg->ImageHeight = RK043FN48H_HEIGHT;
 
-  /* Background value */
-  hLtdcHandler.Init.Backcolor.Blue = 0;
-  hLtdcHandler.Init.Backcolor.Green = 0;
-  hLtdcHandler.Init.Backcolor.Red = 0;
+  /* White background */
+  hLtdcHandler.Init.Backcolor.Blue = 0xFFU;
+  hLtdcHandler.Init.Backcolor.Green = 0xFFU;
+  hLtdcHandler.Init.Backcolor.Red = 0xFFU;
   
   /* Polarity */
   hLtdcHandler.Init.HSPolarity = LTDC_HSPOLARITY_AL;

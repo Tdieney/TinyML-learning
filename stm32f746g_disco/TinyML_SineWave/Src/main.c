@@ -20,7 +20,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "RGB565_480x272.h"
+#include "stm32746g_discovery_lcd.h"
 
 /** @addtogroup STM32F7xx_HAL_Examples
   * @{
@@ -36,7 +36,6 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* Private function prototypes -----------------------------------------------*/
-static void LCD_Config(void); 
 static void SystemClock_Config(void);
 static void Error_Handler(void);
 static void CPU_CACHE_Enable(void);
@@ -70,22 +69,22 @@ int main(void)
   /* Configure the system clock to 216 MHz */
   SystemClock_Config();
   
-    /* LCD clock configuration */
-    /* PLLSAI_VCO Input = HSE_VALUE/PLL_M = 1 Mhz */
-    /* PLLSAI_VCO Output = PLLSAI_VCO Input * PLLSAIN = 192 Mhz */
-    /* PLLLCDCLK = PLLSAI_VCO Output/PLLSAIR = 192/5 = 38.4 Mhz */
-    /* LTDC clock frequency = PLLLCDCLK / LTDC_PLLSAI_DIVR_4 = 38.4/4 = 9.6Mhz */
-    PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_LTDC;
-    PeriphClkInitStruct.PLLSAI.PLLSAIN = 192;
-    PeriphClkInitStruct.PLLSAI.PLLSAIR = 5;
-    PeriphClkInitStruct.PLLSAIDivR = RCC_PLLSAIDIVR_4;
-    HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct);  
+  /* LCD clock configuration */
+  /* PLLSAI_VCO Input = HSE_VALUE/PLL_M = 1 Mhz */
+  /* PLLSAI_VCO Output = PLLSAI_VCO Input * PLLSAIN = 192 Mhz */
+  /* PLLLCDCLK = PLLSAI_VCO Output/PLLSAIR = 192/5 = 38.4 Mhz */
+  /* LTDC clock frequency = PLLLCDCLK / LTDC_PLLSAI_DIVR_4 = 38.4/4 = 9.6Mhz */
+  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_LTDC;
+  PeriphClkInitStruct.PLLSAI.PLLSAIN = 192;
+  PeriphClkInitStruct.PLLSAI.PLLSAIR = 5;
+  PeriphClkInitStruct.PLLSAIDivR = RCC_PLLSAIDIVR_4;
+  HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct);  
   
   /* Configure LED1 */
   BSP_LED_Init(LED1);   
   
   /* Configure LCD : Only one layer is used */
-  LCD_Config();
+  BSP_LCD_Init();
 
   while (1)
   {
@@ -152,103 +151,6 @@ void SystemClock_Config(void)
   if(ret != HAL_OK)
   {
     while(1) { ; }
-  }  
-}
-
-/**
-  * @brief LCD Configuration.
-  * @note  This function Configure tha LTDC peripheral :
-  *        1) Configure the Pixel Clock for the LCD
-  *        2) Configure the LTDC Timing and Polarity
-  *        3) Configure the LTDC Layer 1 :
-  *           - The frame buffer is located at FLASH memory
-  *           - The Layer size configuration : 480x272                      
-  * @retval
-  *  None
-  */
-static void LCD_Config(void)
-{ 
-  static LTDC_HandleTypeDef hltdc_F;
-  LTDC_LayerCfgTypeDef      pLayerCfg;
-  
-  /* LTDC Initialization -------------------------------------------------------*/
-  
-  /* Polarity configuration */
-  /* Initialize the horizontal synchronization polarity as active low */
-  hltdc_F.Init.HSPolarity = LTDC_HSPOLARITY_AL;
-  /* Initialize the vertical synchronization polarity as active low */ 
-  hltdc_F.Init.VSPolarity = LTDC_VSPOLARITY_AL; 
-  /* Initialize the data enable polarity as active low */ 
-  hltdc_F.Init.DEPolarity = LTDC_DEPOLARITY_AL; 
-  /* Initialize the pixel clock polarity as input pixel clock */  
-  hltdc_F.Init.PCPolarity = LTDC_PCPOLARITY_IPC;
-  
-  /* The RK043FN48H LCD 480x272 is selected */
-  /* Timing Configuration */
-  hltdc_F.Init.HorizontalSync = (RK043FN48H_HSYNC - 1);
-  hltdc_F.Init.VerticalSync = (RK043FN48H_VSYNC - 1);
-  hltdc_F.Init.AccumulatedHBP = (RK043FN48H_HSYNC + RK043FN48H_HBP - 1);
-  hltdc_F.Init.AccumulatedVBP = (RK043FN48H_VSYNC + RK043FN48H_VBP - 1);
-  hltdc_F.Init.AccumulatedActiveH = (RK043FN48H_HEIGHT + RK043FN48H_VSYNC + RK043FN48H_VBP - 1);
-  hltdc_F.Init.AccumulatedActiveW = (RK043FN48H_WIDTH + RK043FN48H_HSYNC + RK043FN48H_HBP - 1);
-  hltdc_F.Init.TotalHeigh = (RK043FN48H_HEIGHT + RK043FN48H_VSYNC + RK043FN48H_VBP + RK043FN48H_VFP - 1);
-  hltdc_F.Init.TotalWidth = (RK043FN48H_WIDTH + RK043FN48H_HSYNC + RK043FN48H_HBP + RK043FN48H_HFP - 1);
-  
-  /* Configure R,G,B component values for LCD background color : all black background */
-  hltdc_F.Init.Backcolor.Blue = 0;
-  hltdc_F.Init.Backcolor.Green = 0;
-  hltdc_F.Init.Backcolor.Red = 0;
-
-  hltdc_F.Instance = LTDC;
-  
-/* Layer1 Configuration ------------------------------------------------------*/
-  
-  /* Windowing configuration */ 
-  /* In this case all the active display area is used to display a picture then :
-     Horizontal start = horizontal synchronization + Horizontal back porch = 43 
-     Vertical start   = vertical synchronization + vertical back porch     = 12
-     Horizontal stop = Horizontal start + window width -1 = 43 + 480 -1 
-     Vertical stop   = Vertical start + window height -1  = 12 + 272 -1      */
-  pLayerCfg.WindowX0 = 0;
-  pLayerCfg.WindowX1 = 480;
-  pLayerCfg.WindowY0 = 0;
-  pLayerCfg.WindowY1 = 272;
-  
-  /* Pixel Format configuration*/ 
-  pLayerCfg.PixelFormat = LTDC_PIXEL_FORMAT_RGB565;
-  
-  /* Start Address configuration : frame buffer is located at FLASH memory */
-  pLayerCfg.FBStartAdress = (uint32_t)&RGB565_480x272;
-  
-  /* Alpha constant (255 == totally opaque) */
-  pLayerCfg.Alpha = 255;
-  
-  /* Default Color configuration (configure A,R,G,B component values) : no background color */
-  pLayerCfg.Alpha0 = 0; /* fully transparent */
-  pLayerCfg.Backcolor.Blue = 0;
-  pLayerCfg.Backcolor.Green = 0;
-  pLayerCfg.Backcolor.Red = 0;
-  
-  /* Configure blending factors */
-  pLayerCfg.BlendingFactor1 = LTDC_BLENDING_FACTOR1_CA;
-  pLayerCfg.BlendingFactor2 = LTDC_BLENDING_FACTOR2_CA;
-  
-  /* Configure the number of lines and number of pixels per line */
-  pLayerCfg.ImageWidth  = 480;
-  pLayerCfg.ImageHeight = 272;
-  
-  /* Configure the LTDC */  
-  if(HAL_LTDC_Init(&hltdc_F) != HAL_OK)
-  {
-    /* Initialization Error */
-    Error_Handler(); 
-  }
-    
-  /* Configure the Layer*/
-  if(HAL_LTDC_ConfigLayer(&hltdc_F, &pLayerCfg, 1) != HAL_OK)
-  {
-    /* Initialization Error */
-    Error_Handler(); 
   }  
 }
 
