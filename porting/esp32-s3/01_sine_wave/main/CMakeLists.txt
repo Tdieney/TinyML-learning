@@ -1,0 +1,9 @@
+idf_component_register(
+    SRCS
+        "main.cpp"
+        "model.cc"
+    INCLUDE_DIRS
+        "."
+    REQUIRES
+        tflm
+)
