@@ -1,4 +1,4 @@
-# Standalone TFLM Tree
+# Generate Standalone TFLM Tree
 
 This is a guide details the steps taken to set up the environment and successfully generate a standalone TensorFlow Lite for Microcontrollers (TFLM) project tree on **Windows** like this.
 
