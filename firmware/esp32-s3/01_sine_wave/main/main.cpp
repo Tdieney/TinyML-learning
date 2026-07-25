@@ -18,7 +18,7 @@ extern unsigned int g_model_len;
 
 // Define a Tensor Arena size (TFLM needs this memory space for input, output, and intermediate tensors)
 // 2 KB is more than enough for this small sine wave model.
-constexpr int kTensorArenaSize = 2 * 1024;
+constexpr int kTensorArenaSize = 1 * 1024;
 // Must align to 16 bytes for hardware compatibility
 alignas(16) static uint8_t tensor_arena[kTensorArenaSize];
 

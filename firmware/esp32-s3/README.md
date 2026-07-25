@@ -43,6 +43,12 @@ Create a `components/tflm` directory:
    ```
 Write a custom `CMakeLists.txt` in the `components/tflm` directory to register TFLM files and include paths. Refer [here](01_sine_wave\components\tflm\CMakeLists.txt) for the full content.
 
+**Key Highlights of this Configuration:**
+- Maps the include directories so any code linking to `tflm` can include TFLM headers correctly (e.g., `#include "tensorflow/lite/..."`).
+- Uses `file(GLOB ...)` to dynamically compile all kernels, preventing compilation failures when adding new models.
+- Registers `TF_LITE_STATIC_MEMORY` as a `PUBLIC` compile definition, so it propagates automatically to the `main` application code.
+- Relaxes several compiler checks (like type-limit warnings) which ESP-IDF treats as compilation errors by default.
+
 The pre-trained model is already serialized as a C++ array inside `models/` folder. Copy and paste it into the `main/` folder of your project. Modify `main/CMakeLists.txt` to register `main.cpp` and our shared model code.
 
 Implement the Inference App Code (C++). Rename the boilerplate `main/{project_name}.c` to `main/main.cpp` and implement the setup and inference loop. Refer to [main.cpp](01_sine_wave\main\main.cpp) for the full implementation.
